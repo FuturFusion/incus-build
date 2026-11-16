@@ -101,7 +101,7 @@ if [ "$1" = "configure" ]; then
         echo ""
         echo "WARNING: systemd wasn't found on this system"
         echo "As a result, the incus units have not been enabled."
-        echo "The Zabbly Incus packages are only tested and supported on systemd systems."
+        echo "The FuturFusion Incus packages are only tested and supported on systemd systems."
         echo ""
     fi
 fi

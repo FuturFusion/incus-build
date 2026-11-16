@@ -1,7 +1,7 @@
 Source: incus
 Section: admin
 Priority: optional
-Maintainer: Zabbly <info@zabbly.com>
+Maintainer: FuturFusion <info@futurfusion.io>
 Build-Depends: debhelper-compat (= 12)
 Standards-Version: 4.6.2
 Homepage: https://linuxcontainers.org
@@ -30,8 +30,9 @@ Description: Incus - Container and virtualization daemon
  .
  This package contains everything needed to run containers and VMs.
  .
- This build of Incus is provided for free by Zabbly.
- Zabbly can be contacted for commercial support and development on Incus.
+ This version of Incus is built by FuturFusion, and is intended for use as
+ part of the FuturFusion Cloud stack. Support is only provided to customers
+ with an active FuturFusion support contract.
 
 Package: incus-base
 Architecture: linux-any
@@ -96,8 +97,9 @@ Description: Incus - Container and virtualization daemon (container-only)
  .
  This package contains only what's needed to run containers.
  .
- This build of Incus is provided for free by Zabbly.
- Zabbly can be contacted for commercial support and development on Incus.
+ This version of Incus is built by FuturFusion, and is intended for use as
+ part of the FuturFusion Cloud stack. Support is only provided to customers
+ with an active FuturFusion support contract.
 
 Package: incus-client
 Architecture: any
@@ -116,8 +118,9 @@ Description: Incus - Command line client
  .
  This package contains the command line client.
  .
- This build of Incus is provided for free by Zabbly.
- Zabbly can be contacted for commercial support and development on Incus.
+ This version of Incus is built by FuturFusion, and is intended for use as
+ part of the FuturFusion Cloud stack. Support is only provided to customers
+ with an active FuturFusion support contract.
 
 Package: incus-extra
 Architecture: any
@@ -147,8 +150,9 @@ Description: Incus - Extra tools
   - lxc-to-incus
   - lxd-to-incus
  .
- This build of Incus is provided for free by Zabbly.
- Zabbly can be contacted for commercial support and development on Incus.
+ This version of Incus is built by FuturFusion, and is intended for use as
+ part of the FuturFusion Cloud stack. Support is only provided to customers
+ with an active FuturFusion support contract.
 
 Package: incus-ui-canonical
 Architecture: any
@@ -161,5 +165,6 @@ Description: Incus - Web interface (canonical)
  .
  This package contains a web interface based on canonical/lxd-ui.
  .
- This build of Incus is provided for free by Zabbly.
- Zabbly can be contacted for commercial support and development on Incus.
+ This version of Incus is built by FuturFusion, and is intended for use as
+ part of the FuturFusion Cloud stack. Support is only provided to customers
+ with an active FuturFusion support contract.
