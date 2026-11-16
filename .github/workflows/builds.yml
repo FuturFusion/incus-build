@@ -1,6 +1,7 @@
 name: Builds
 on:
   push:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,22 +12,18 @@ concurrency:
 
 jobs:
   build-incus:
-    name: Build Incus
+    name: Build Incus 7.0 LTS
     strategy:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
-          - ubuntu-24.04
-          - ubuntu-26.04
-          - debian-12
           - debian-13
         arch:
           - amd64
           - arm64
     runs-on:
       - self-hosted
-      - zabbly-incus-build
+      - futurfusion-kernel-build
       - arch-${{ matrix.arch }}
       - image-${{ matrix.os }}
 
@@ -43,8 +40,9 @@ jobs:
       # Linux Containers projects
       DISTROBUILDER_TAG: "distrobuilder-3.2"
       INCUS_COMPOSE_TAG: "v1.3.5"
-      INCUS_TAG: "v7.0.2"
-      INCUS_UI_CANONICAL_TAG: "incus-0.22.1"
+      INCUS_BRANCH: "stable-7.0"
+      INCUS_VERSION: "v7.0.2"
+      INCUS_UI_CANONICAL_TAG: "incus-0.23.1.0"
       LXCFS_TAG: "v7.0.0"
       LXC_TAG: "v7.0.0"
 
@@ -73,8 +71,8 @@ jobs:
       - name: Configure git
         run: |
           git config --global --add advice.detachedHead false
-          git config --global user.email "noreply@zabbly.com"
-          git config --global user.name "Zabbly Incus build"
+          git config --global user.email "noreply@futurfusion.io"
+          git config --global user.name "FuturFusion Incus build"
 
       - name: Install dependencies
         run: |
@@ -208,7 +206,7 @@ jobs:
           bg git clone https://github.com/lxc/distrobuilder /build/distrobuilder --depth 1 -b "${DISTROBUILDER_TAG}"
           bg git clone https://github.com/lxc/lxc /build/lxc -b "${LXC_TAG}"
           bg git clone https://github.com/lxc/lxcfs /build/lxcfs --depth 1 -b "${LXCFS_TAG}"
-          bg git clone https://github.com/lxc/incus /build/incus -b "${INCUS_TAG}"
+          bg git clone https://github.com/FuturFusion/incus /build/incus -b "${INCUS_BRANCH}"
           bg git clone https://github.com/lxc/incus-compose /build/incus-compose --depth 1 -b "${INCUS_COMPOSE_TAG}"
           bg git clone https://github.com/zabbly/incus-ui-canonical /build/incus-ui-canonical --depth 1 -b "${INCUS_UI_CANONICAL_TAG}"
 
@@ -334,26 +332,13 @@ jobs:
 
           cd /build/incus
 
-          git cherry-pick 1bd01df82ea19ec7dba87041a4e3d8f8b42a47f2  # incusd/instance/lxc: Reject line breaks in LXC config values
-          git cherry-pick e298fc7880b718398d2d8b4efd8b23bffc6d317d  # incusd/instance/lxc: Only parse config.json for OCI containers
-          git cherry-pick 7c998495cf7f3f8f658492a116c7e15288ac9993  # incusd/instance/lxc: Keep loader variables out of the forklxc environment
-          git cherry-pick cf2d213bb64f11c024aa5624c15bd239f3f5ec89  # incusd/dev_incus: Anchor the cgroup based monitor detection
-          git cherry-pick 3c717818be57e21f7b782444a23404044426efd4  # incusd: Check resource creation against the effective project
-          git cherry-pick 1f75f3da6bec34d62cc05a0b6b1e9065cb8d2cd9  # incusd/auth/tls: Restrict inherited reads to the certificate's projects
-          git cherry-pick fce499bc012083af1301d641b0d045acd5900d6c  # incusd/operations: Protect token operations from events and cancellation
-          git cherry-pick 43e6bdeb7530768c3bc2ae0feb2541e48fa365c3  # incusd/storage/s3: Verify signed payloads without buffering
-          git am "${REPO}/patches/incus-0001-incusd-storage-Validate-dependent-volumes-received-t.patch"
-          git cherry-pick f002fdb887845bc6fc7679cd63c06603a49c3bb5  # incusd/storage: Validate snapshot names from the backup index on import
-          git am "${REPO}/patches/incus-0002-incusd-Only-trust-the-key-proven-client-certificate.patch"
-          git cherry-pick 2876803d02651cc9b5efc95483411878047b3748  # incusd/dev_incus: Pin image export to the instance's project
-          git cherry-pick dc2d0c836c57b69e65625e48db3a28c3dd76cd66  # incusd/events: Restrict network-acl events to privileged viewers
-          git cherry-pick 0df451f531b57d18090988340a906ed49d310024  # incusd/instance/lxc: Allocate an idmap when none is set at start
-          git cherry-pick 6af74594a80a048f8e2354f4a56f77e63e74ac92  # incusd: Authorize effective project on resource creation
-          git cherry-pick aca14711ed4c6b8c24aa00e46c632b456e09200c  # incusd: Fix cross-project disclosure in recursive and all-projects listings
-          git cherry-pick a8b2c791e0821b4cee872766cdca5df87e0ad6dc  # incusd/storage: Strip non-regular files from instance metadata
-          git am "${REPO}/patches/incus-0003-incusd-instance-qemu-Confine-NBD-migration-sockets-t.patch"
-          git cherry-pick dd00e2b2e929bd03c190445e7d991e1ffd03788f  # incusd: Reject null snapshot entries on backup import
-          git cherry-pick b6c832ba41e0eb92442e0c7491bb2c329134f2b2  # incusd/operations: Keep websocket secrets out of events and queries
+          # Print the commit we're building Incus from.
+          echo "Building Incus from the following commit:"
+          git show -s HEAD
+
+          # Adjust the reported version number to indicate what commit was built.
+          HASH=$(git rev-parse --short HEAD)
+          sed -i -E "s/ = \"[0-9]\\.0\\.[0-9]+/&-git${HASH}/" internal/version/flex.go
 
           go build -o "/opt/incus/bin/fuidshift" github.com/lxc/incus/v7/cmd/fuidshift
           go build -o "/opt/incus/bin/incus" github.com/lxc/incus/v7/cmd/incus
@@ -883,7 +868,7 @@ jobs:
               -e "/^  LIBVIRGL,$/d"
           fi
 
-          dch --package incus --create -D ${CODENAME} -M -m "Automated Incus LTS build" -v 1:$(echo ${INCUS_TAG} | sed -e "s/v//" -e "s/.0$//")-$(echo ${PKGOS} | sed "s/-//g")-$(date -u +%Y%m%d%H%M) --force-distribution
+          dch --package incus --create -D ${CODENAME} -M -m "Automated Incus 7.0 LTS build" -v 1:$(echo ${INCUS_VERSION} | sed -e "s/v//" -e "s/.0$//")-$(echo ${PKGOS} | sed "s/-//g")-$(date -u +%Y%m%d%H%M) --force-distribution
           dpkg-buildpackage -b
 
           cd ..
@@ -900,3 +885,42 @@ jobs:
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}
           path: out/*
+
+  release:
+    name: Create the GitHub release
+    needs: [build-incus]
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download all built artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: artifacts
+
+      - name: Create the release and upload artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find artifacts -type f)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "error: no build artifacts were found to attach to the release" >&2
+            exit 1
+          fi
+
+          mkdir upload/
+          cp artifacts/debian-13-amd64/* upload/
+          cp artifacts/debian-13-arm64/* upload/
+
+          version=$(ls upload/incus_*_amd64.deb | cut -d '_' -f 2)
+
+          notes="FuturFusion Incus 7.0 LTS packages for version $version."
+
+          gh release create "$version" \
+            --title "Incus 7.0 LTS ($version)" \
+            --notes "$notes" \
+            upload/*
